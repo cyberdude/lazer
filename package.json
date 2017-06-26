@@ -19,11 +19,12 @@
   "author": "Arnaldo Capo",
   "license": "MIT",
   "dependencies": {
-    "electron-fetch": "^1.0.0"
+    "electron-fetch": "^1.0.0",
+    "nedb": "^1.8.0"
   },
   "devDependencies": {
     "electron": "~1.6.2",
-    "electron-packager": "^8.7.1"    
+    "electron-packager": "^8.7.1"
   },
   "bugs": {
     "url": "https://github.com/cyberdude/lazer/issues"

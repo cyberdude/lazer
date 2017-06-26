@@ -1,6 +1,10 @@
 const {app, Tray, net, Menu} = require('electron')
 const path = require('path')
 const fetch = require('electron-fetch')
+const Datastore = require('nedb')
+var db = {}
+db.sessions = new Datastore({ filename: './db/sessions.db', autoload: true })
+db.sessions.loadDatabase()
 
 const assetsDirectory = path.join(__dirname, 'assets')
 
@@ -12,45 +16,43 @@ app.dock.hide()
 
 app.on('ready', () => {
   createTray()
-  startTick()
-  fetchPrice()
+  // startTick()
+  // fetchPrice()
 })
 
 const createTray = () => {
-  tray = new Tray(path.join(assetsDirectory, 'eth.png'))
-  tray.setTitle('--')
+  tray = new Tray(path.join(assetsDirectory, 'lazer.png'))
+  // tray.setTitle('--')
 
-  const contextMenu = Menu.buildFromTemplate([
-    {label: 'Quit', type: 'normal', click: () => {
-      app.quit()
-    }}
-  ])
+  // const contextMenu = Menu.buildFromTemplate([
+  //   {label: 'Quit', type: 'normal', click: () => {
+  //     app.quit()
+  //   }}
+  // ])
 
-  tray.setContextMenu(contextMenu)
-  tray.on('click', function (event) {
+  // tray.setContextMenu(contextMenu)
+  tray.on('click', (event) => {
 
+    console.log('tray click')
+
+    db.sessions.find({}).sort({time: -1}).limit(1).exec((err, lastDoc) => {
+
+      console.log('lastDoc', lastDoc)
+
+      const isStart = (!lastDoc.length || lastDoc[0].start === false) ? true : false
+      const doc = {
+        time: new Date(),
+        start: isStart
+      }
+
+      db.sessions.insert(doc, (err, newDoc) => {
+        console.log('newDoc', newDoc)
+      })
+
+    })
   })
 }
 
-const fetchPrice = () => {
-
-  fetch('https://api.gdax.com/products/ETH-USD/ticker')
-    .then(res => res.json())
-    .then(body => {
-      var price = parseFloat(body.price)
-
-      if (isNaN(price)) {
-        return
-      }
-
-      price = price.toFixed(2)
-      tray.setTitle('$' + price)
-    })
-    // .then(function(){
-    //   tray.setHighlightMode('never')
-    // })
-}
-
 const startTick = () => {
-  setInterval(fetchPrice, 60000)
+  
 }
