@@ -21,6 +21,7 @@
   "dependencies": {
     "electron-fetch": "^1.0.0",
     "humanize-duration": "^3.10.0",
+    "lodash": "^4.17.4",
     "moment": "^2.18.1",
     "nedb": "^1.8.0"
   },
