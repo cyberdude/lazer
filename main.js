@@ -1,9 +1,10 @@
 'use strict'
 
-const {app, Tray, net, Menu} = require('electron')
+const {app, Tray, Menu, BrowserWindow} = require('electron')
 const path = require('path')
 const fetch = require('electron-fetch')
-const Datastore = require('nedb')
+// db was here
+const db = require('./db.js')
 const moment = require('moment')
 const humanizeDuration = require('humanize-duration')
 const _ = require('lodash')
@@ -23,7 +24,7 @@ const shortEnglishHumanizer = humanizeDuration.humanizer({
     }
   }
 })
-var db = {}
+
 var clock = 0
 var contextMenu = {}
 var menuItems = [
@@ -48,42 +49,49 @@ var menuItems = [
     }
   }
 ]
-db.sessions = new Datastore({ filename: './db/sessions.db', autoload: true })
-db.sessions.loadDatabase()
+
 
 const assetsDirectory = path.join(__dirname, 'assets')
 
 let tray = undefined
-let window = undefined
+let mainWindow = undefined
 
 // Don't show the app in the doc
-app.dock.hide()
+// app.dock.hide()
 
 app.on('ready', () => {
   createTray()
   checkClockStatus()
+  createWindow()
 })
+
+function createWindow () {
+  mainWindow = new BrowserWindow({width: 800, height: 600})
+  // mainWindow.loadURL('file://' + __dirname + '/index.html')
+  mainWindow.loadURL('http://localhost:8080/')
+
+  // dereference the mainWindow object when the window is closed
+  mainWindow.on('closed', function() {
+      mainWindow = null
+  })
+}
+
 
 const listLogs = () => {
   db.sessions
       .find({
-        start : {
-          $gt: (new Date('2017-07-01T01:00:00.279Z'))
-        }
+        // start : {
+        //   $gt: (new Date('2017-07-01T01:00:00.279Z'))
+        // }
       })
       .sort({start: -1 })
       .exec((err, docs) => {
-        console.log(docs)
 
         var aggregatedTime = [];
-        var lastDoc = {}
         var totalTime = 0
         _.each(docs, (doc) => {
-
-          if (!doc.start)
-            return lastDoc = doc
           
-          const computedTime = moment(lastDoc.time).diff(doc.time)
+          const computedTime = moment(doc.end).diff(doc.start)
           aggregatedTime.push(
             {
               time: computedTime,
@@ -96,12 +104,10 @@ const listLogs = () => {
         })
 
         console.log(aggregatedTime)
-
-        console.log(humanizeDuration((aggregatedTime[0].time +  aggregatedTime[1].time)))
         console.log(humanizeDuration(totalTime))
       })
 }
-
+listLogs()
 const buildMenu = (isStart) => {
 
   menuItems[0].label = (isStart) ? 'Stop' : 'Start'
@@ -143,7 +149,7 @@ const tickClick = () => {
     if (isStart) {
       doc.start = new Date()
     } else {
-      return db.sessions.update({ _id: lastDoc[0]._id}, {end: new Date()}, {}, (err, numberReplaced) => {
+      return db.sessions.update({ _id: lastDoc[0]._id}, {$set:{end: new Date() }}, {}, (err, numberReplaced) => {
         console.log(err)
         console.log('numberReplaced', numberReplaced)
         stopClock()      
