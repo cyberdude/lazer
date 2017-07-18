@@ -68,7 +68,7 @@ app.on('ready', () => {
 function createWindow () {
   mainWindow = new BrowserWindow({width: 800, height: 600})
   // mainWindow.loadURL('file://' + __dirname + '/index.html')
-  mainWindow.loadURL('http://localhost:8080/')
+  mainWindow.loadURL('http://localhost:808034/')
 
   // dereference the mainWindow object when the window is closed
   mainWindow.on('closed', function() {
@@ -95,7 +95,9 @@ const listLogs = () => {
           aggregatedTime.push(
             {
               time: computedTime,
-              human: humanizeDuration(computedTime)
+              human: humanizeDuration(computedTime),
+              start: doc.start,
+              end: doc.end
             }
           )
 
