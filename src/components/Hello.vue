@@ -1,31 +1,70 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <h2>Essential Links</h2>
+  <div>
     <ul>
-      <li><a href="https://vuejs.org" target="_blank">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank">Forum</a></li>
-      <li><a href="https://gitter.im/vuejs/vue" target="_blank">Gitter Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank">Twitter</a></li>
-      <br>
-      <li><a href="http://vuejs-templates.github.io/webpack/" target="_blank">Docs for This Template</a></li>
+      <li v-for="project in projects">{{project.name}} <a v-on:click="removeProject(project._id)">[ x ]</a></li>
     </ul>
-    <h2>Ecosystem</h2>
-    <ul>
-      <li><a href="http://router.vuejs.org/" target="_blank">vue-router</a></li>
-      <li><a href="http://vuex.vuejs.org/" target="_blank">vuex</a></li>
-      <li><a href="http://vue-loader.vuejs.org/" target="_blank">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank">awesome-vue</a></li>
-    </ul>
+    <form v-on:submit.prevent="onSubmit">
+      <label for="new_project">* New Project</label>
+      <input name="newProject" v-model="name" id="new_project" required>
+      <button>Add Project</button>
+    </form>
   </div>
 </template>
 
 <script>
+import db from '../db.js'
+import { ipcRenderer } from 'electron'
+
 export default {
-  name: 'hello',
+  name: 'projects',
   data () {
     return {
-      msg: 'Welcome to Your Vue.js App'
+      name: '',
+      projects: []
+    }
+  },
+  mounted: function () {
+    console.log(db)
+    console.log(ipcRenderer)
+    ipcRenderer.send('async', 1)
+    this.loadDBProjects()
+  },
+  methods: {
+    onSubmit: function () {
+      db.projects.insert({
+        name: this.name
+      }, (err, newDoc) => {
+        if (err) {
+          return console.log(err)
+        }
+        this.loadDBProjects()
+        this.name = ''
+      })
+    },
+    removeProject: function (id) {
+      db.projects.remove({
+        _id: id
+      }, (err, result) => {
+        if (err) {
+          return console.log(err)
+        }
+        this.loadDBProjects()
+      })
+    },
+    loadDBProjects: function () {
+      const parent = this
+
+      db.projects.find({}).exec((err, _projects) => {
+        if (err) {
+          return console.log(err)
+        }
+        console.log(_projects)
+        parent.projects = _projects
+      })
+
+      console.log(db)
+    },
+    addNewProject: function () {
     }
   }
 }
@@ -33,21 +72,5 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h1, h2 {
-  font-weight: normal;
-}
 
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-
-a {
-  color: #42b983;
-}
 </style>

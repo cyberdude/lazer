@@ -1,10 +1,10 @@
 'use strict'
 
-const {app, Tray, Menu, BrowserWindow} = require('electron')
+const {app, Tray, Menu, BrowserWindow, systemPreferences, ipcMain} = require('electron')
 const path = require('path')
 const fetch = require('electron-fetch')
 // db was here
-const db = require('./db.js')
+const db = require('./src/db.js')
 const moment = require('moment')
 const humanizeDuration = require('humanize-duration')
 const _ = require('lodash')
@@ -50,8 +50,10 @@ var menuItems = [
   }
 ]
 
+db.projects.insert({name: 'test'})
 
-const assetsDirectory = path.join(__dirname, 'assets')
+const assetsDirectory = path.join(__dirname, '../assets')
+console.log(assetsDirectory)
 
 let tray = undefined
 let mainWindow = undefined
@@ -68,7 +70,7 @@ app.on('ready', () => {
 function createWindow () {
   mainWindow = new BrowserWindow({width: 800, height: 600})
   // mainWindow.loadURL('file://' + __dirname + '/index.html')
-  mainWindow.loadURL('http://localhost:808034/')
+  mainWindow.loadURL('http://localhost:8080/')
 
   // dereference the mainWindow object when the window is closed
   mainWindow.on('closed', function() {
@@ -115,10 +117,22 @@ const buildMenu = (isStart) => {
   menuItems[0].label = (isStart) ? 'Stop' : 'Start'
   contextMenu = Menu.buildFromTemplate(menuItems)
   tray.setContextMenu(contextMenu)
+
+
+  // setInterval(() => {
+  //   _.each(contextMenu.items, (item) => {
+
+  //     console.log(item.label, item.checked)
+
+  //   })
+  // },3000)
+  
 }
 
 const createTray = () => {
-  tray = new Tray(path.join(assetsDirectory, 'lazer.png'))
+  const icon =  (systemPreferences.isDarkMode()) ? 'lazer-dark.png' : 'lazer.png'
+
+  tray = new Tray(path.join(__static, icon))
   // tray.setTitle('--')
 
   tray.on('click', (event) => {
@@ -224,3 +238,11 @@ const stopClock = () => {
   clock = 0
   tray.setTitle('')
 }
+
+ipcMain.on('async', (event, arg) => {
+    // Print 1
+    // console.log(event);
+    // console.log(arg);
+    // Reply on async message from renderer process
+    // event.sender.send('async-reply', 2);
+});
