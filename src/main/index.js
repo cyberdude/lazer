@@ -26,31 +26,8 @@ const shortEnglishHumanizer = humanizeDuration.humanizer({
 
 var clock = 0
 var contextMenu = {}
-var menuItems = [
-  {
-    label: 'Start',
-    type: 'normal',
-    click: () => {
-      tickClick()
-    }
-  }, {
-    label: 'Tezos',
-    type: 'radio',
-    click: () => {
-    }
-  }, {
-    label: 'Winevento',
-    type: 'radio',
-    click: () => {
-    }
-  }, {
-    label: 'Quit',
-    type: 'normal',
-    click: () => {
-      app.quit()
-    }
-  }
-]
+var menuItems = []
+
 const assetsDirectory = path.join(__dirname, 'assets')
 console.log(assetsDirectory)
 /**
@@ -140,21 +117,59 @@ const listLogs = () => {
       })
 }
 listLogs()
-db.projects.find({}).exec((err, docs) => {
-  console.log('listLogs')
-  console.log('listLogs')
-  console.log(docs)
-  console.log('listLogs')
-  console.log('listLogs')
-  if (err) {
-    return console.log(err)
-  }
-})
 
 const buildMenu = (isStart) => {
+  console.log('Building menuter')
+  menuItems.push({
+    label: 'Start',
+    type: 'normal',
+    click: () => {
+      tickClick()
+    }
+  })
+//     }, {
+//       label: 'Tezos',
+//       type: 'radio',
+//       click: () => {
+//       }
+//     }, {
+//       label: 'Winevento',
+//       type: 'radio',
+//       click: () => {
+//       }
+//     }, {
+//       label: 'Quit',
+//       type: 'normal',
+//       click: () => {
+//         app.quit()
+//       }
+//     }
+//   ]
+  db.projects.find({}).exec((err, docs) => {
+    if (err) {
+      return console.log(err)
+    }
+    _.each(docs, doc => {
+      menuItems.push({
+        label: doc.name,
+        type: 'radio',
+        click: () => {
+        }
+      })
+    })
+    menuItems.push({
+      label: 'Quit',
+      type: 'normal',
+      click: () => {
+        app.quit()
+      }
+    })
+
+    contextMenu = Menu.buildFromTemplate(menuItems)
+    tray.setContextMenu(contextMenu)
+  })
+
   menuItems[0].label = (isStart) ? 'Stop' : 'Start'
-  contextMenu = Menu.buildFromTemplate(menuItems)
-  tray.setContextMenu(contextMenu)
 
   // setInterval(() => {
   //   _.each(contextMenu.items, (item) => {
@@ -283,8 +298,8 @@ const checkClockStatus = () => {
 console.log(ipcMain)
 ipcMain.on('async', (event, arg) => {
   // Print 1
-  console.log(event)
-  console.log(arg)
+  // console.log(event)
+  // console.log(arg)
   // Reply on async message from renderer process
   // event.sender.send('async-reply', 2);
 })

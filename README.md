@@ -1,4 +1,4 @@
-# lazer-ui
+# lazer
 
 > An electron-vue project
 

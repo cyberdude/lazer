@@ -26,10 +26,10 @@ export default {
   mounted: function () {
     console.log(db)
     console.log(ipcRenderer)
-    setTimeout(() => {
-      console.log('Sending ipcRenderer')
-      ipcRenderer.send('async', 1)
-    }, 3000)
+    // setTimeout(() => {
+    //   console.log('Sending ipcRenderer')
+    //   ipcRenderer.send('async', 1)
+    // }, 3000)
     this.loadDBProjects()
   },
   methods: {
