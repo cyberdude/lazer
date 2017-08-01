@@ -1,5 +1,51 @@
 <template>
   <div>
+    <div class="row">
+      <div class="column medium-12 large-12">
+        <h1>{{name}}</h1>
+      </div>
+    </div>
+
+    <div class="row">
+      <ul>
+
+        <li class="row">
+          <div class="column medium-4 large-4">
+            Start
+          </div>
+
+          <div class="column medium-4 large-4">
+            End
+          </div>
+
+          <div class="column medium-4 large-4">
+            Total Time
+          </div>
+        </li>
+        
+        <li class="row" v-for="session in sessions">
+          <div class="column medium-4 large-4">
+            {{session.startPretty}}
+          </div>
+
+          <div class="column medium-4 large-4">
+            {{session.endPretty}}            
+          </div>
+
+          <div class="column medium-4 large-4">
+            {{session.human}}
+          </div>
+        </li>
+
+      </ul>
+    </div>
+
+    <div class="row">
+      <div class="column medium-12 large-12">
+        <router-link :to="'/'">Back</router-link>
+      </div>      
+    </div>
+
   </div>
 </template>
 
@@ -14,17 +60,19 @@ export default {
   name: 'project-page',
   data () {
     return {
+      name: '',
+      sessions: []
     }
   },
   mounted: function () {
-    console.log(this.$route)
+    this.name = this.$route.params.name
     this.listLogs()
   },
   methods: {
     listLogs: function () {
       db.sessions
         .find({
-          name: this.$route.params.name
+          name: this.name
           // start : {
           //   $gt: (new Date('2017-07-01T01:00:00.279Z'))
           // }
@@ -34,6 +82,8 @@ export default {
           if (err) {
             return console.log(err)
           }
+
+          const dateFormat = 'MMM D, Y, H:mm:ss'
 
           var aggregatedTime = []
           var totalTime = 0
@@ -46,13 +96,15 @@ export default {
                 time: computedTime,
                 human: humanizeDuration(computedTime),
                 start: doc.start,
+                startPretty: moment(doc.start).format(dateFormat),
+                endPretty: moment(doc.end).format(dateFormat),
                 end: doc.end
               }
             )
 
             totalTime += computedTime
           })
-
+          this.sessions = aggregatedTime
           console.log(aggregatedTime)
           console.log(humanizeDuration(totalTime))
         })
@@ -63,5 +115,7 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss" scoped>
-
+ul {
+  list-style-type: none;
+}
 </style>

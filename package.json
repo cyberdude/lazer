@@ -2,8 +2,8 @@
   "name": "lazer",
   "version": "1.0.0",
   "author": "Arnaldo Capo (hello@arnaldocapo.com)",
-  "description": "An electron-vue project",
-  "license": null,
+  "description": "Track working time. Helper for human freelancers.",
+  "license": "AGPL-3.0+",
   "main": "./dist/electron/main.js",
   "scripts": {
     "build": "node .electron-vue/build.js && electron-builder",
