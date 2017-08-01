@@ -25,11 +25,11 @@ const shortEnglishHumanizer = humanizeDuration.humanizer({
 })
 
 var clock = 0
-var contextMenu = {}
+// var contextMenu = {}
 var menuItems = []
 
-const assetsDirectory = path.join(__dirname, 'assets')
-console.log(assetsDirectory)
+// app.dock.hide()
+
 /**
  * Set `__static` path to static files in production
  * https://simulatedgreg.gitbooks.io/electron-vue/content/en/using-static-assets.html
@@ -82,42 +82,6 @@ app.on('activate', () => {
 
 // My Stuff
 
-const listLogs = () => {
-  db.sessions
-      .find({
-        // start : {
-        //   $gt: (new Date('2017-07-01T01:00:00.279Z'))
-        // }
-      })
-      .sort({ start: -1 })
-      .exec((err, docs) => {
-        if (err) {
-          return console.log(err)
-        }
-
-        var aggregatedTime = []
-        var totalTime = 0
-
-        _.each(docs, (doc) => {
-          const computedTime = moment(doc.end).diff(doc.start)
-          aggregatedTime.push(
-            {
-              time: computedTime,
-              human: humanizeDuration(computedTime),
-              start: doc.start,
-              end: doc.end
-            }
-          )
-
-          totalTime += computedTime
-        })
-
-        console.log(aggregatedTime)
-        console.log(humanizeDuration(totalTime))
-      })
-}
-listLogs()
-
 const buildMenu = (isStart) => {
   console.log('Building menuter')
   menuItems.push({
@@ -164,9 +128,9 @@ const buildMenu = (isStart) => {
         app.quit()
       }
     })
-
-    contextMenu = Menu.buildFromTemplate(menuItems)
-    tray.setContextMenu(contextMenu)
+    console.log(Menu)
+    // contextMenu = Menu.buildFromTemplate(menuItems)
+    // tray.setContextMenu(contextMenu)
   })
 
   menuItems[0].label = (isStart) ? 'Stop' : 'Start'
@@ -180,6 +144,15 @@ const buildMenu = (isStart) => {
   // },3000)
 }
 
+const toggleWindow = () => {
+  if (mainWindow.isVisible()) {
+    mainWindow.hide()
+  } else {
+    mainWindow.show()
+    mainWindow.focus()
+  }
+}
+
 const createTray = () => {
   const icon = (systemPreferences.isDarkMode()) ? 'lazer-dark.png' : 'lazer.png'
 
@@ -187,10 +160,11 @@ const createTray = () => {
   // tray.setTitle('--')
 
   tray.on('click', (event) => {
+    toggleWindow()
   })
 }
 
-const tickClick = () => {
+const tickClick = (project) => {
   console.log('tray click')
 
   db.sessions
@@ -211,7 +185,7 @@ const tickClick = () => {
       // const activeMenu = _.find(contextMenu.items, {checked: true })
 
       var doc = {
-        name: 'Tezos'
+        name: (project) ? project.name : 'Tezos'
       }
       console.log('isStart', isStart)
       if (isStart) {
@@ -259,6 +233,7 @@ const startClock = (newDoc) => {
       }
     )
     tray.setTitle(title)
+    // ipcMain.send('tick', title)
   }
 
   clock = setInterval(clockCore, 60000)
@@ -289,17 +264,18 @@ const checkClockStatus = () => {
 
       // console.log(contextMenu.items)
       // console.log(lastDoc[0].label)
-      var activeMenu = _.find(contextMenu.items, { label: lastDoc[0].name })
-      console.log(activeMenu.checked = true)
+      // var activeMenu = _.find(contextMenu.items, { label: lastDoc[0].name })
+      // console.log(activeMenu.checked = true)
 
       startClock(lastDoc[0])
     })
 }
-console.log(ipcMain)
-ipcMain.on('async', (event, arg) => {
+// console.log(ipcMain)
+ipcMain.on('tock', (event, arg) => {
   // Print 1
   // console.log(event)
-  // console.log(arg)
+  console.log('tock', arg)
+  tickClick(arg)
   // Reply on async message from renderer process
   // event.sender.send('async-reply', 2);
 })

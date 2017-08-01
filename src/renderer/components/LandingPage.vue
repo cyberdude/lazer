@@ -1,13 +1,34 @@
 <template>
   <div>
-    <ul>
-      <li v-for="project in projects">{{project.name}} <a v-on:click="removeProject(project._id)">[ x ]</a></li>
-    </ul>
-    <form v-on:submit.prevent="onSubmit">
-      <label for="new_project">* New Project</label>
-      <input name="newProject" v-model="name" id="new_project" required>
-      <button>Add Project</button>
-    </form>
+    <div class="row" id="project_role">
+      <div class="column large-12">
+        <h3>Projects</h3>
+        <ul>
+          <li v-for="project in projects" class="row">
+            <div class="column medium-4 large-4">
+              <button v-on:click="tickProject(project)">Start ></button>
+            </div>
+            <div class="column medium-4 large-4">
+              <router-link
+                :to="'/project/' + project.name">{{project.name}}</router-link>
+            </div>
+            <div class="column medium-4 large-4">            
+              <a v-on:click="removeProject(project._id)">[ x ]</a>
+            </div>
+            
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="row" id="add_new_project">
+      <div class="column large-12">
+        <form v-on:submit.prevent="onSubmit">
+          <label for="new_project">* New Project</label>
+          <input name="newProject" v-model="name" id="new_project" required>
+          <button>Add Project</button>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -20,7 +41,8 @@ export default {
   data () {
     return {
       name: '',
-      projects: []
+      projects: [],
+      timer: ''
     }
   },
   mounted: function () {
@@ -31,8 +53,18 @@ export default {
     //   ipcRenderer.send('async', 1)
     // }, 3000)
     this.loadDBProjects()
+    this.bindListeners()
   },
   methods: {
+    tickProject: function (project) {
+      ipcRenderer.send('tock', project)
+      console.log(project)
+    },
+    bindListeners: function () {
+      ipcRenderer.on('tick', (event, arg) => {
+        console.log('ARG here', arg)
+      })
+    },
     onSubmit: function () {
       db.projects.insert({
         name: this.name
@@ -74,6 +106,35 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style lang="scss" scoped>
+
+ul {
+  list-style-type: none;
+}
+
+.row {
+  > div {
+    // text-align: center;
+  }
+}
+
+#project_role {
+  > div {
+    ul {
+      li {
+        // display: none;
+        margin-bottom: 10px;
+
+      }
+    }
+  }
+}
+
+#add_new_project {
+  margin-top: 30px;
+  > div {
+
+  }
+}
 
 </style>
