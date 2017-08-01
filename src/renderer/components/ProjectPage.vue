@@ -6,7 +6,7 @@
       </div>
     </div>
 
-    <div class="row">
+    <div class="row" id="detail_data">
       <ul>
 
         <li class="row">
@@ -40,7 +40,13 @@
       </ul>
     </div>
 
-    <div class="row">
+    <div class="row" id="aggregated_data">
+      <div class="column medium-12 large-12">
+        Total: {{totalTime}}
+      </div>
+    </div>
+
+    <div class="row" id="closing_ctas">
       <div class="column medium-12 large-12">
         <router-link :to="'/'">Back</router-link>
       </div>      
@@ -61,7 +67,8 @@ export default {
   data () {
     return {
       name: '',
-      sessions: []
+      sessions: [],
+      totalTime: ''
     }
   },
   mounted: function () {
@@ -105,8 +112,7 @@ export default {
             totalTime += computedTime
           })
           this.sessions = aggregatedTime
-          console.log(aggregatedTime)
-          console.log(humanizeDuration(totalTime))
+          this.totalTime = humanizeDuration(totalTime)
         })
     }
   }
@@ -115,7 +121,23 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss" scoped>
+
 ul {
   list-style-type: none;
+}
+
+#detail_data {
+  ul {
+    li:first-child {
+      font-weight: bold;
+    }
+  }
+}
+
+#closing_ctas {
+  margin-top: 30px;
+  > div {
+
+  }
 }
 </style>

@@ -13,7 +13,7 @@
                 :to="'/project/' + project.name">{{project.name}}</router-link>
             </div>
             <div class="column medium-4 large-4">            
-              <a v-on:click="removeProject(project._id)">[ x ]</a>
+              <a v-on:click="removeProject(project)">[ x ]</a>
             </div>
             
           </li>
@@ -76,9 +76,15 @@ export default {
         this.name = ''
       })
     },
-    removeProject: function (id) {
+    removeProject: function (project) {
+      const answer = confirm('Are you sure you want to remove project ', project.name)
+
+      if (!answer) {
+        return
+      }
+
       db.projects.remove({
-        _id: id
+        _id: project._id
       }, (err, result) => {
         if (err) {
           return console.log(err)
