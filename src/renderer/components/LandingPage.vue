@@ -6,7 +6,10 @@
         <ul>
           <li v-for="project in projects" class="row">
             <div class="column medium-4 large-4">
-              <button v-on:click="tickProject(project)">Start ></button>
+                <!-- :disabled="projectName !== project.name" -->
+              <button
+                :disabled="projectName !== project.name && projectName.length > 0"
+                v-on:click="tickProject(project)">{{ (projectName === project.name) ? 'Stop' : 'Start' }} > </button>
             </div>
             <div class="column medium-4 large-4">
               <router-link
@@ -42,7 +45,8 @@ export default {
     return {
       name: '',
       projects: [],
-      timer: ''
+      timer: '',
+      projectName: ''
     }
   },
   mounted: function () {
@@ -54,15 +58,25 @@ export default {
     // }, 3000)
     this.loadDBProjects()
     this.bindListeners()
+    ipcRenderer.send('clockStatusAsk', true)
   },
   methods: {
     tickProject: function (project) {
       ipcRenderer.send('tock', project)
-      console.log(project)
+      console.log('Tick project', project)
     },
     bindListeners: function () {
       ipcRenderer.on('tick', (event, arg) => {
         console.log('ARG here', arg)
+      })
+      console.log('Binding listeners')
+      ipcRenderer.on('clockRunning', (event, _projectName) => {
+        if (!_projectName) {
+          this.projectName = ''
+          return
+        }
+        this.projectName = _projectName
+        console.log('clockRunning ARG here', _projectName)
       })
     },
     onSubmit: function () {

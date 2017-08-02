@@ -27,7 +27,7 @@ const shortEnglishHumanizer = humanizeDuration.humanizer({
 var clock = 0
 // var contextMenu = {}
 var menuItems = []
-
+// var clockState
 // app.dock.hide()
 
 /**
@@ -91,24 +91,7 @@ const buildMenu = (isStart) => {
       tickClick()
     }
   })
-//     }, {
-//       label: 'Tezos',
-//       type: 'radio',
-//       click: () => {
-//       }
-//     }, {
-//       label: 'Winevento',
-//       type: 'radio',
-//       click: () => {
-//       }
-//     }, {
-//       label: 'Quit',
-//       type: 'normal',
-//       click: () => {
-//         app.quit()
-//       }
-//     }
-//   ]
+
   db.projects.find({}).exec((err, docs) => {
     if (err) {
       return console.log(err)
@@ -157,7 +140,6 @@ const createTray = () => {
   const icon = (systemPreferences.isDarkMode()) ? 'lazer-dark.png' : 'lazer.png'
 
   tray = new Tray(path.join(__static, icon))
-  // tray.setTitle('--')
 
   tray.on('click', (event) => {
     toggleWindow()
@@ -215,7 +197,8 @@ const tickClick = (project) => {
 }
 
 const startClock = (newDoc) => {
-  console.log('tick ')
+  console.log('starting clock ')
+  mainWindow.webContents.send('clockRunning', newDoc.name)
 
   const clockCore = () => {
     console.log('t0ck', newDoc)
@@ -241,6 +224,8 @@ const startClock = (newDoc) => {
 }
 
 const stopClock = () => {
+  mainWindow.webContents.send('clockRunning', false)
+
   clearInterval(clock)
   clock = 0
   tray.setTitle('')
@@ -278,6 +263,13 @@ ipcMain.on('tock', (event, arg) => {
   tickClick(arg)
   // Reply on async message from renderer process
   // event.sender.send('async-reply', 2);
+})
+ipcMain.on('clockStatusAsk', (event, arg) => {
+  console.log('clockStatusAsk')
+  if (!arg) {
+    return
+  }
+  checkClockStatus()
 })
 
 /**
