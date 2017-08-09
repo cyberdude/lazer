@@ -6,6 +6,20 @@
       </div>
     </div>
 
+    <div class="row">
+
+      <div class="column medium-6 large-6">
+        <label>Start Date</label>
+        <datepicker placeholder="Select Date" v-model="start"></datepicker>
+      </div>
+
+      <div class="column medium-6 large-6">
+        <label>End Date</label>
+        <datepicker placeholder="Select Date"  v-model="end"></datepicker>
+      </div>
+
+    </div>
+
     <div class="row" id="detail_data">
       <ul>
 
@@ -60,6 +74,7 @@ import db from '../../shared/db.js'
 import _ from 'lodash'
 import moment from 'moment'
 import humanizeDuration from 'humanize-duration'
+import Datepicker from 'vuejs-datepicker'
 // import { ipcRenderer } from 'electron'
 
 export default {
@@ -68,7 +83,9 @@ export default {
     return {
       name: '',
       sessions: [],
-      totalTime: ''
+      totalTime: '',
+      start: new Date(),
+      end: new Date()
     }
   },
   mounted: function () {
@@ -77,13 +94,17 @@ export default {
   },
   methods: {
     listLogs: function () {
+      console.log(moment(this.end).endOf('day').toISOString())
+      var query = {
+        name: this.name,
+        start: { $gt: (new Date(moment(this.start).startOf('day').toISOString())) },
+        end: { $lt: (new Date(moment(this.end).endOf('day').toISOString())) }
+      }
+
+      console.log(query)
+
       db.sessions
-        .find({
-          name: this.name
-          // start : {
-          //   $gt: (new Date('2017-07-01T01:00:00.279Z'))
-          // }
-        })
+        .find(query)
         .sort({ start: -1 })
         .exec((err, docs) => {
           if (err) {
@@ -96,7 +117,7 @@ export default {
           var totalTime = 0
 
           _.each(docs, (doc) => {
-            console.log(doc)
+            // console.log(doc)
             const computedTime = moment(doc.end).diff(doc.start)
             aggregatedTime.push(
               {
@@ -115,6 +136,18 @@ export default {
           this.totalTime = humanizeDuration(totalTime)
         })
     }
+  },
+  watch: {
+  // whenever question changes, this function will run
+    start: function () {
+      this.listLogs()
+    },
+    end: function () {
+      this.listLogs()
+    }
+  },
+  components: {
+    Datepicker
   }
 }
 </script>
