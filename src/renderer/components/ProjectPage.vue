@@ -1,8 +1,12 @@
 <template>
   <div>
     <div class="row">
-      <div class="column medium-12 large-12">
+      <div class="column medium-6 large-6">
         <h1>{{name}}</h1>
+      </div>
+
+      <div class="column medium-6 large-6">
+        <h1>{{income}}</h1>
       </div>
     </div>
 
@@ -75,6 +79,8 @@ import _ from 'lodash'
 import moment from 'moment'
 import humanizeDuration from 'humanize-duration'
 import Datepicker from 'vuejs-datepicker'
+import accounting from 'accounting'
+
 // import { ipcRenderer } from 'electron'
 
 export default {
@@ -84,8 +90,9 @@ export default {
       name: '',
       sessions: [],
       totalTime: '',
-      start: new Date(),
-      end: new Date()
+      start: moment().startOf('month').toDate(),
+      end: new Date(),
+      income: ''
     }
   },
   mounted: function () {
@@ -132,6 +139,8 @@ export default {
 
             totalTime += computedTime
           })
+          const convertedIncome = (Math.round((totalTime / 1000 / 60 / 60) * 100) / 100) * 80
+          this.income = accounting.formatMoney(convertedIncome, '€', 2, '.', ',')
           this.sessions = aggregatedTime
           this.totalTime = humanizeDuration(totalTime)
         })
