@@ -105,7 +105,7 @@ export default {
       var query = {
         name: this.name,
         start: { $gt: (new Date(moment(this.start).startOf('day').toISOString())) },
-        end: { $lt: (new Date(moment(this.end).endOf('day').toISOString())) }
+        $or: [{end: { $lt: (new Date(moment(this.end).endOf('day').toISOString())) }}, {end: {$exists: false}}]
       }
 
       console.log(query)

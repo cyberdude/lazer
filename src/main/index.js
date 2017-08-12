@@ -1,6 +1,6 @@
 'use strict'
 
-const {app, Tray, Menu, BrowserWindow, systemPreferences, ipcMain} = require('electron')
+const {app, Tray, BrowserWindow, systemPreferences, ipcMain} = require('electron')
 const path = require('path')
 // db was here
 const db = require('../shared/db.js')
@@ -111,20 +111,10 @@ const buildMenu = (isStart) => {
         app.quit()
       }
     })
-    console.log(Menu)
-    // contextMenu = Menu.buildFromTemplate(menuItems)
-    // tray.setContextMenu(contextMenu)
+    // console.log(Menu)
   })
 
   menuItems[0].label = (isStart) ? 'Stop' : 'Start'
-
-  // setInterval(() => {
-  //   _.each(contextMenu.items, (item) => {
-
-  //     console.log(item.label, item.checked)
-
-  //   })
-  // },3000)
 }
 
 const toggleWindow = () => {
@@ -142,6 +132,9 @@ const createTray = () => {
   tray = new Tray(path.join(__static, icon))
 
   tray.on('click', (event) => {
+    if (mainWindow === null) {
+      return createWindow()
+    }
     toggleWindow()
   })
 }
