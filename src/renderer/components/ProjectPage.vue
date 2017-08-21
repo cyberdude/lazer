@@ -24,6 +24,30 @@
 
     </div>
 
+    <div class="row" id="add_panel">
+
+      <div class="column large-4">
+        <label>Start Date/Time</label>
+        <datepicker placeholder="Select Date" v-model="newStart"></datepicker>
+        <!-- <select>
+          <option v-for="time in times">{{time}}</option>
+        </select> -->
+        <input placeholder="00:00" v-model="newHourStart">
+      </div>
+      
+
+      <div class="column large-4">
+        <label>End Date/Time</label>
+        <datepicker placeholder="Select Date" v-model="newEnd"></datepicker>
+        <input placeholder="00:00" v-model="newHourEnd">
+      </div>
+
+      <div class="column large-4">
+        <button v-on:click="addNewEntry()">Add new</button>
+      </div>
+
+    </div>
+
     <div class="row" id="detail_data">
       <ul>
 
@@ -43,7 +67,7 @@
         
         <li class="row" v-for="session in sessions">
           <div class="column medium-4 large-4">
-            {{session.startPretty}}
+            <a @click="removeEntry(session)">X</a> {{session.startPretty}}
           </div>
 
           <div class="column medium-4 large-4">
@@ -92,16 +116,76 @@ export default {
       totalTime: '',
       start: moment().startOf('month').toDate(),
       end: new Date(),
-      income: ''
+      newStart: new Date(),
+      newEnd: new Date(),
+      newHourStart: '',
+      newHourEnd: '',
+      income: '',
+      times: []
     }
   },
   mounted: function () {
     this.name = this.$route.params.name
     this.listLogs()
+    this.generateTimes()
   },
   methods: {
+    removeEntry: function (session) {
+      const anwser = confirm('Are you use you want to delete ' + session.startPretty + ' - ' + session.endPretty)
+
+      if (!anwser) {
+        return
+      }
+
+      const listLogs = this.listLogs
+      db.sessions
+        .remove({_id: session._id},
+          (err, numRemoved) => {
+            if (err) {
+              return console.error(err)
+            }
+            listLogs()
+          })
+      console.log(session)
+    },
+    generateTimes: function () {
+      for (var x = 0; x < 24; x++) {
+        var _time = (x < 10)
+          ? '0' + x.toString()
+          : x.toString()
+
+        _time += ':00'
+
+        this.times.push(_time)
+      }
+      console.log(this.times)
+    },
+    addNewEntry: function () {
+      const formatInputDate = 'Y-MM-DD'
+
+      var _newStart = moment(this.newStart).format(formatInputDate)
+      _newStart += 'T' + this.newHourStart
+      _newStart = moment(_newStart)
+
+      var _newEnd = moment(this.newEnd).format(formatInputDate)
+      _newEnd += 'T' + this.newHourEnd
+      _newEnd = moment(_newEnd)
+
+      db.sessions
+        .insert({
+          name: this.name,
+          start: _newStart.toDate(),
+          end: _newEnd.toDate()
+        }, (err, docs) => {
+          if (err) {
+            return console.log(err)
+          }
+          console.log('herheh', docs)
+        })
+      console.log(_newStart, this.newHourStart)
+      console.log(_newEnd, this.newHourEnd)
+    },
     listLogs: function () {
-      console.log(moment(this.end).endOf('day').toISOString())
       var query = {
         name: this.name,
         start: { $gt: (new Date(moment(this.start).startOf('day').toISOString())) },
@@ -112,11 +196,12 @@ export default {
 
       db.sessions
         .find(query)
-        .sort({ start: -1 })
+        .sort({ start: 1 })
         .exec((err, docs) => {
           if (err) {
             return console.log(err)
           }
+          console.log('docs', docs)
 
           const dateFormat = 'MMM D, Y, H:mm:ss'
 
@@ -128,6 +213,7 @@ export default {
             const computedTime = moment(doc.end).diff(doc.start)
             aggregatedTime.push(
               {
+                _id: doc._id,
                 time: computedTime,
                 human: humanizeDuration(computedTime),
                 start: doc.start,
@@ -142,7 +228,7 @@ export default {
           const convertedIncome = (Math.round((totalTime / 1000 / 60 / 60) * 100) / 100) * 80
           this.income = accounting.formatMoney(convertedIncome, '€', 2, '.', ',')
           this.sessions = aggregatedTime
-          this.totalTime = humanizeDuration(totalTime)
+          this.totalTime = humanizeDuration(totalTime, { units: ['h'] })
         })
     }
   },
@@ -166,6 +252,16 @@ export default {
 
 ul {
   list-style-type: none;
+}
+
+#add_panel {
+  $thisMargin: 30px;
+
+  padding: 2.5em 0;
+  border: 1px solid;
+  border-radius: 3px;
+  margin-top: $thisMargin;
+  margin-bottom: $thisMargin;
 }
 
 #detail_data {
