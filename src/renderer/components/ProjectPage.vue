@@ -24,6 +24,27 @@
 
     </div>
 
+    <div class="row" id="add_panel">
+
+      <div class="column large-4">
+        <label>Start Date/Time</label>
+        <datepicker placeholder="Select Date" v-model="newStart"></datepicker>
+        <input placeholder="00:00" v-model="newTime">
+      </div>
+      
+
+      <div class="column large-4">
+        <label>End Date/Time</label>
+        <datepicker placeholder="Select Date" v-model="newEnd"></datepicker>
+
+      </div>
+
+      <div class="column large-4">
+        <button v-on:click="addNewEntry()">Add new</button>
+      </div>
+
+    </div>
+
     <div class="row" id="detail_data">
       <ul>
 
@@ -92,6 +113,9 @@ export default {
       totalTime: '',
       start: moment().startOf('month').toDate(),
       end: new Date(),
+      newStart: new Date(),
+      newEnd: new Date(),
+      newTime: '',
       income: ''
     }
   },
@@ -100,8 +124,10 @@ export default {
     this.listLogs()
   },
   methods: {
+    addNewEntry: function () {
+
+    },
     listLogs: function () {
-      console.log(moment(this.end).endOf('day').toISOString())
       var query = {
         name: this.name,
         start: { $gt: (new Date(moment(this.start).startOf('day').toISOString())) },
@@ -142,7 +168,7 @@ export default {
           const convertedIncome = (Math.round((totalTime / 1000 / 60 / 60) * 100) / 100) * 80
           this.income = accounting.formatMoney(convertedIncome, '€', 2, '.', ',')
           this.sessions = aggregatedTime
-          this.totalTime = humanizeDuration(totalTime)
+          this.totalTime = humanizeDuration(totalTime, { units: ['h'] })
         })
     }
   },
@@ -166,6 +192,16 @@ export default {
 
 ul {
   list-style-type: none;
+}
+
+#add_panel {
+  $thisMargin: 30px;
+
+  padding: 2.5em 0;
+  border: 1px solid;
+  border-radius: 3px;
+  margin-top: $thisMargin;
+  margin-bottom: $thisMargin;
 }
 
 #detail_data {
