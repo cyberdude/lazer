@@ -154,13 +154,8 @@ const tickClick = (project) => {
 
       buildMenu(isStart)
 
-      // _.each(contextMenu.items, (_m) => {
-      //   console.log('_m', _m.checked)
-      // })
-      // const activeMenu = _.find(contextMenu.items, {checked: true })
-
       var doc = {
-        name: (project) ? project.name : 'Tezos'
+        name: project.name
       }
       console.log('isStart', isStart)
       if (isStart) {

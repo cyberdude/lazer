@@ -29,14 +29,17 @@
       <div class="column large-4">
         <label>Start Date/Time</label>
         <datepicker placeholder="Select Date" v-model="newStart"></datepicker>
-        <input placeholder="00:00" v-model="newTime">
+        <!-- <select>
+          <option v-for="time in times">{{time}}</option>
+        </select> -->
+        <input placeholder="00:00" v-model="newHourStart">
       </div>
       
 
       <div class="column large-4">
         <label>End Date/Time</label>
         <datepicker placeholder="Select Date" v-model="newEnd"></datepicker>
-
+        <input placeholder="00:00" v-model="newHourEnd">
       </div>
 
       <div class="column large-4">
@@ -115,17 +118,54 @@ export default {
       end: new Date(),
       newStart: new Date(),
       newEnd: new Date(),
-      newTime: '',
-      income: ''
+      newHourStart: '',
+      newHourEnd: '',
+      income: '',
+      times: []
     }
   },
   mounted: function () {
     this.name = this.$route.params.name
     this.listLogs()
+    this.generateTimes()
   },
   methods: {
-    addNewEntry: function () {
+    generateTimes: function () {
+      for (var x = 0; x < 24; x++) {
+        var _time = (x < 10)
+          ? '0' + x.toString()
+          : x.toString()
 
+        _time += ':00'
+
+        this.times.push(_time)
+      }
+      console.log(this.times)
+    },
+    addNewEntry: function () {
+      const formatInputDate = 'Y-MM-DD'
+
+      var _newStart = moment(this.newStart).format(formatInputDate)
+      _newStart += 'T' + this.newHourStart
+      _newStart = moment(_newStart)
+
+      var _newEnd = moment(this.newEnd).format(formatInputDate)
+      _newEnd += 'T' + this.newHourEnd
+      _newEnd = moment(_newEnd)
+
+      db.sessions
+        .insert({
+          name: this.name,
+          start: _newStart.toDate(),
+          end: _newEnd.toDate()
+        }, (err, docs) => {
+          if (err) {
+            return console.log(err)
+          }
+          console.log('herheh', docs)
+        })
+      console.log(_newStart, this.newHourStart)
+      console.log(_newEnd, this.newHourEnd)
     },
     listLogs: function () {
       var query = {
@@ -138,7 +178,7 @@ export default {
 
       db.sessions
         .find(query)
-        .sort({ start: -1 })
+        .sort({ start: 1 })
         .exec((err, docs) => {
           if (err) {
             return console.log(err)
