@@ -132,6 +132,7 @@ export default {
   methods: {
     removeEntry: function (session) {
       const anwser = confirm('Are you use you want to delete ' + session.startPretty + ' - ' + session.endPretty)
+
       if (!anwser) {
         return
       }
