@@ -24,7 +24,7 @@ const shortEnglishHumanizer = humanizeDuration.humanizer({
   }
 })
 
-var clock = 0
+var clock = null
 // var contextMenu = {}
 var menuItems = []
 // var clockState
@@ -161,11 +161,15 @@ const tickClick = (project) => {
       if (isStart) {
         doc.start = new Date()
       } else {
-        return db.sessions.update({ _id: lastDoc[0]._id }, { $set: { end: new Date() } }, {}, (err, numberReplaced) => {
-          console.log(err)
-          console.log('numberReplaced', numberReplaced)
-          stopClock()
-        })
+        return db.sessions.update({
+          _id: lastDoc[0]._id
+        },
+          { $set: { end: new Date() }
+          }, {}, (err, numberReplaced) => {
+            console.log(err)
+            console.log('numberReplaced', numberReplaced)
+            stopClock()
+          })
       }
 
       db.sessions.insert(doc, (err, newDoc) => {
@@ -187,9 +191,9 @@ const tickClick = (project) => {
 const startClock = (newDoc) => {
   console.log('starting clock ')
   mainWindow.webContents.send('clockRunning', newDoc.name)
-
+  var id = +new Date()
   const clockCore = () => {
-    console.log('t0ck', newDoc)
+    console.log('t0ck', id)
 
     const startTime = moment(newDoc.start)
     const now = moment()
@@ -213,9 +217,9 @@ const startClock = (newDoc) => {
 
 const stopClock = () => {
   mainWindow.webContents.send('clockRunning', false)
-
   clearInterval(clock)
-  clock = 0
+  clock = null
+
   tray.setTitle('')
 }
 
