@@ -104,7 +104,7 @@ import moment from 'moment'
 import humanizeDuration from 'humanize-duration'
 import Datepicker from 'vuejs-datepicker'
 import accounting from 'accounting'
-
+import async from 'async'
 // import { ipcRenderer } from 'electron'
 
 export default {
@@ -126,6 +126,7 @@ export default {
   },
   mounted: function () {
     this.name = this.$route.params.name
+    this.projectId = this.$route.params.id
     this.listLogs()
     this.generateTimes()
   },
@@ -185,6 +186,52 @@ export default {
       console.log(_newStart, this.newHourStart)
       console.log(_newEnd, this.newHourEnd)
     },
+    syncLogs: function (docs) {
+      var _http = this.$http
+      const q = async.queue((_doc, callback) => {
+        _http.post('/sechs', _doc)
+          .then(response => {
+            console.log(response)
+            db.sessions
+              .update({ _id: _doc._id }, { $set: { serverId: response.data.id } }, {}, (err, numberReplaced) => {
+                if (err) {
+                  console.error(err)
+                }
+                if (numberReplaced < 1) {
+                  console.error('NONE REPLACED?')
+                }
+                console.log('numberReplaced', numberReplaced)
+                callback()
+              })
+          })
+      }, 3)
+
+      docs.forEach(doc => {
+        doc.name = this.name
+        doc.projectId = this.projectId
+        console.log(doc)
+        q.push(doc)
+      })
+      // db.sessions
+      //   .find({
+      //     name: this.name,
+      //     serverId: {
+      //       $exists: false
+      //     }
+      //   })
+      //   .exec((err, docs) => {
+      //     if (err) {
+      //       return console.error(err)
+      //     }
+
+      //     docs.forEach(doc => {
+      //       doc.name = this.name
+      //       doc.projectId = this.projectId
+      //       console.log(doc)
+      //       q.push(doc)
+      //     })
+      //   })
+    },
     listLogs: function () {
       var query = {
         name: this.name,
@@ -206,22 +253,26 @@ export default {
           const dateFormat = 'MMM D, Y, H:mm:ss'
 
           var aggregatedTime = []
+          var unsyncedLogs = []
           var totalTime = 0
 
           _.each(docs, (doc) => {
             // console.log(doc)
             const computedTime = moment(doc.end).diff(doc.start)
-            aggregatedTime.push(
-              {
-                _id: doc._id,
-                time: computedTime,
-                human: humanizeDuration(computedTime),
-                start: doc.start,
-                startPretty: moment(doc.start).format(dateFormat),
-                endPretty: moment(doc.end).format(dateFormat),
-                end: doc.end
-              }
-            )
+            const finalDoc = {
+              _id: doc._id,
+              time: computedTime,
+              human: humanizeDuration(computedTime),
+              start: doc.start,
+              startPretty: moment(doc.start).format(dateFormat),
+              endPretty: moment(doc.end).format(dateFormat),
+              end: doc.end
+            }
+            aggregatedTime.push(finalDoc)
+
+            if (!doc.serverId) {
+              unsyncedLogs.push(finalDoc)
+            }
 
             totalTime += computedTime
           })
@@ -229,6 +280,7 @@ export default {
           this.income = accounting.formatMoney(convertedIncome, '€', 2, '.', ',')
           this.sessions = aggregatedTime
           this.totalTime = humanizeDuration(totalTime, { units: ['h'] })
+          this.syncLogs(unsyncedLogs)
         })
     }
   },

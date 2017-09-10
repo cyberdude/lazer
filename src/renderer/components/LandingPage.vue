@@ -13,7 +13,7 @@
             </div>
             <div class="column medium-4 large-4">
               <router-link
-                :to="'/project/' + project.name">{{project.name}}</router-link>
+                :to="'/project/' + project.name + '/' + project._id">{{project.name}}</router-link>
             </div>
             <div class="column medium-4 large-4">            
               <a v-on:click="removeProject(project)">[ x ]</a>
